@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+        "baseUrl": ".",
+        "sourceMap": true,
+        "module": "esnext",
+        "target": "es6",
+        "allowJs": true,
+        "noImplicitAny": true,
+        "moduleResolution": "node",
+        "importHelpers": true,
+        "experimentalDecorators": true,
+        "allowSyntheticDefaultImports": true,
+        "lib": ["dom", "esnext", "scripthost", "es2019"]
+    },
+    "include": ["**/*.ts"]
+}
