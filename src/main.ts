@@ -53,19 +53,15 @@ export default class BlockDragging extends Plugin {
                 const list = sizer.querySelectorAll(
                     "div:not(.markdown-preview-pusher):not(.collapse-indicator)"
                 );
+
                 console.log("🚀 ~ file: main.ts ~ line 56 ~ list", list);
 
                 const sort = new Sortable(sizer, {
                     draggable: "> div",
                     filter: ".markdown-preview-pusher, .collapse-indicator",
-                    setData: (dataTransfer, dragEl) => {
-                        dataTransfer.setData("context", contextMap.get(dragEl));
-                    },
+
                     onUpdate: (evt) => {
                         console.log("🚀 ~ file: main.ts ~ line 63 ~ evt", evt);
-                        console.log(
-                            evt.originalEvent.dataTransfer
-                        );
                     }
                 });
                 console.log("🚀 ~ file: main.ts ~ line 68 ~ sort", sort);
