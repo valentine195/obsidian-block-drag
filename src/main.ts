@@ -12,15 +12,13 @@ import {
 
 import Sortable from "sortablejs";
 
-interface BlockDraggingSettings {
-    mySetting: string;
+declare module "obsidian" {
+    interface View {
+        file: TFile;
+    }
 }
-const DEFAULT_SETTINGS: BlockDraggingSettings = {
-    mySetting: "default"
-};
 export default class BlockDragging extends Plugin {
-    settings: BlockDraggingSettings;
-    map: Map<MarkdownView, Map<HTMLElement, MarkdownSectionInformation>> =
+    map: Map<MarkdownView, Map<HTMLElement, MarkdownPostProcessorContext>> =
         new Map();
     async onload() {
         console.log("Loading Block Dragging v" + this.manifest.version);
@@ -50,21 +48,59 @@ export default class BlockDragging extends Plugin {
                     this.app.metadataCache.getFileCache(leaf.view.file).sections
                 );
 
-                const list = sizer.querySelectorAll(
-                    "div:not(.markdown-preview-pusher):not(.collapse-indicator)"
+                let list: NodeListOf<HTMLDivElement> = sizer.querySelectorAll(
+                    "div:not(.collapse-indicator):not(:empty)"
                 );
 
-                console.log("🚀 ~ file: main.ts ~ line 56 ~ list", list);
-
                 const sort = new Sortable(sizer, {
-                    draggable: "> div",
-                    filter: ".markdown-preview-pusher, .collapse-indicator",
+                    draggable: "div",
+                    filter: ".collapse-indicator, div > section.footnotes, :empty",
 
-                    onUpdate: (evt) => {
-                        console.log("🚀 ~ file: main.ts ~ line 63 ~ evt", evt);
+                    onEnd: async (evt) => {
+                        list = sizer.querySelectorAll(
+                            "div:not(.collapse-indicator):not(:empty)"
+                        );
+                        let fileText = (
+                            await this.app.vault.cachedRead(leaf.view.file)
+                        ).split("\n");
+
+                        const myContext = contextMap.get(evt.item);
+                        const mySection = myContext.getSectionInfo(evt.item);
+                        const elementIAmNowBefore = list.item(
+                            evt.newDraggableIndex
+                        );
+
+                        const newContext = contextMap.get(elementIAmNowBefore);
+                        const newSection =
+                            newContext.getSectionInfo(elementIAmNowBefore);
+
+                        fileText = [
+                            ...fileText.slice(0, mySection.lineStart),
+                            ...fileText.slice(
+                                mySection.lineEnd + 1,
+                                newSection.lineStart
+                            ),
+                            ...fileText.slice(
+                                mySection.lineStart,
+                                mySection.lineEnd + 1
+                            ),
+                            ...fileText.slice(newSection.lineStart)
+                        ];
+
+                        /* console.log(fileText); */
+
+                        await this.app.vault.modify(leaf.view.file, fileText.join('\n'))
+                    },
+                    onStart: (evt) => {
+                        list = sizer.querySelectorAll(
+                            "div:not(.collapse-indicator):not(:empty)"
+                        );
                     }
                 });
-                console.log("🚀 ~ file: main.ts ~ line 68 ~ sort", sort);
+                console.log(
+                    "🚀 ~ file: main.ts ~ line 68 ~ sort",
+                    sort.toArray()
+                );
             })
         );
     }
@@ -75,58 +111,12 @@ export default class BlockDragging extends Plugin {
             this.map.set(view, new Map());
         }
         let contextMap = this.map.get(view);
-        contextMap.set(el, ctx.getSectionInfo(el));
+        contextMap.set(el, ctx);
     }
 
     onunload() {
         console.log("Unloading Block Dragging");
     }
-    async loadSettings() {
-        this.settings = Object.assign(
-            {},
-            DEFAULT_SETTINGS,
-            await this.loadData()
-        );
-    }
-    async saveSettings() {
-        await this.saveData(this.settings);
-    }
-}
-class SampleModal extends Modal {
-    constructor(app: App) {
-        super(app);
-    }
-    onOpen() {
-        let { contentEl } = this;
-        contentEl.setText("Woah!");
-    }
-    onClose() {
-        let { contentEl } = this;
-        contentEl.empty();
-    }
-}
-class SampleSettingTab extends PluginSettingTab {
-    plugin: BlockDragging;
-    constructor(app: App, plugin: BlockDragging) {
-        super(app, plugin);
-        this.plugin = plugin;
-    }
-    display(): void {
-        let { containerEl } = this;
-        containerEl.empty();
-        containerEl.createEl("h2", { text: "Settings for my awesome plugin." });
-        new Setting(containerEl)
-            .setName("Setting #1")
-            .setDesc("It's a secret")
-            .addText((text) =>
-                text
-                    .setPlaceholder("Enter your secret")
-                    .setValue("")
-                    .onChange(async (value) => {
-                        console.log("Secret: " + value);
-                        this.plugin.settings.mySetting = value;
-                        await this.plugin.saveSettings();
-                    })
-            );
-    }
+    async loadSettings() {}
+    async saveSettings() {}
 }
