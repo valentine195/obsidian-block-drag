@@ -1,3 +1,17 @@
 /*
 * Add any styles you want to be included w/ your plugin here
 */
+.block-drag-plugin-draggable-element {
+    position: relative;
+}
+.block-drag-plugin-handle {
+    position: absolute;
+    opacity: 0;
+    cursor: move;
+    left: -20px;
+    top: 2px;
+}
+.block-drag-plugin-draggable-element:hover .block-drag-plugin-handle,
+.block-drag-plugin-handle:hover {
+    opacity: 1;
+}

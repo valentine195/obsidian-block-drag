@@ -11,6 +11,7 @@
   "devDependencies": {
     "@types/sortablejs": "^1.10.7",
     "copy-webpack-plugin": "^9.0.1",
+    "css-loader": "^6.2.0",
     "mini-css-extract-plugin": "^2.2.0",
     "obsidian": "github:obsidianmd/obsidian-api",
     "obsidian-plugin-cli": "^0.4.3",
