@@ -87,6 +87,8 @@ export default class BlockDragging extends Plugin {
                             ...fileText.slice(myEnd)
                         ];
 
+                        console.log(fileText);
+
                         /** The list will return the element before the dragged item if it goes forward. */
                         const iWentForward = evt.newIndex > evt.oldIndex;
 
@@ -95,6 +97,18 @@ export default class BlockDragging extends Plugin {
                         const elementIAmNowBefore = list.item(
                             evt.newDraggableIndex + Number(iWentForward)
                         );
+                        console.log(
+                            "🚀 ~ file: main.ts ~ line 100 ~ elementIAmNowBefore",
+                            elementIAmNowBefore
+                        );
+                        if (!elementIAmNowBefore) {
+                            fileText.push(...myText);
+                            await this.app.vault.modify(
+                                file,
+                                fileText.join("\n")
+                            );
+                            return;
+                        }
                         const newSection =
                             context.getSectionInfo(elementIAmNowBefore);
 
